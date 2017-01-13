@@ -21,7 +21,8 @@ Eina_Bool doTick(void *data)
         flag_thread_priority = 1;
 	}
 	//tone_player_start(TONE_TYPE_PROP_BEEP, SOUND_TYPE_SYSTEM, 100,  NULL);
-	tone_player_start(TONE_TYPE_PROP_BEEP2, SOUND_TYPE_SYSTEM, 40,  NULL);
+	//tone_player_start(TONE_TYPE_PROP_BEEP2, SOUND_TYPE_SYSTEM, 40,  NULL);
+	tone_player_start(TONE_TYPE_PROP_BEEP2, SOUND_TYPE_NOTIFICATION, 40,  NULL);
 	haptic_device_h hapt_dev;
 	int hapt_num;
 	device_haptic_get_count( &hapt_num );  // gets haptic count
