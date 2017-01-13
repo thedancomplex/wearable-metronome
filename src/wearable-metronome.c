@@ -1,3 +1,4 @@
+#include <app.h>
 #include "wearable-robot-controller.h"
 #include "view.h"
 
