@@ -6,3 +6,6 @@
 #include <efl_util.h>
 Eina_Bool doTick(void *data);
 Eina_Bool _rotary_handler_cb(void *data, Eext_Rotary_Event_Info *ev);
+int start_timer(void);
+int stop_timer(void);
+int start_stop_timer(void);

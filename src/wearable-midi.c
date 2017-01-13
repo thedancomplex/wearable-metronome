@@ -1,11 +1,16 @@
 #include "wearable-midi.h"
 #include "view.h"
-double bpm = 100.0;
+double bpm   = 100.0;
+double bpm_T =  0.6;
+int flag_timer_running = 0;
+
+/* Tick Timer */
+Ecore_Timer* ecore_metronome;
 
 Eina_Bool doTick(void *data)
 {
 	//tone_player_start(TONE_TYPE_PROP_BEEP, SOUND_TYPE_SYSTEM, 100,  NULL);
-	tone_player_start(TONE_TYPE_PROP_BEEP2, SOUND_TYPE_SYSTEM, 100,  NULL);
+	tone_player_start(TONE_TYPE_PROP_BEEP2, SOUND_TYPE_SYSTEM, 40,  NULL);
 	haptic_device_h hapt_dev;
 	int hapt_num;
 	device_haptic_get_count( &hapt_num );  // gets haptic count
@@ -18,7 +23,7 @@ Eina_Bool doTick(void *data)
 
 Eina_Bool _rotary_handler_cb(void *data, Eext_Rotary_Event_Info *ev)
 {
-	doTick(NULL);
+	//doTick(NULL);
 	if (ev->direction == EEXT_ROTARY_DIRECTION_CLOCKWISE)
    {
 	  bpm = bpm + 1.0;
@@ -27,8 +32,31 @@ Eina_Bool _rotary_handler_cb(void *data, Eext_Rotary_Event_Info *ev)
    {
 	  bpm = bpm - 1.0;
    }
-
-	print_debug((int)bpm, (int)bpm);
-	return EINA_FALSE;
+   if(bpm < 1.0) bpm = 1.0;
+   bpm_T = 60.0 / bpm;
+   ecore_timer_interval_set(ecore_metronome, bpm_T);
+   print_debug((int)bpm, (int)bpm);
+   return EINA_FALSE;
 }
 
+
+int stop_timer(void)
+{
+	ecore_timer_del(ecore_metronome);
+	flag_timer_running = 0;
+	return 0;
+}
+
+int start_timer(void)
+{
+	ecore_metronome = ecore_timer_add(bpm_T, doTick, NULL);  // make timer
+	flag_timer_running = 1;
+	return 0;
+}
+
+int start_stop_timer(void)
+{
+	if(flag_timer_running == 1) stop_timer();
+	else                        start_timer();
+	return 0;
+}

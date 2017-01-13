@@ -39,8 +39,7 @@
 #include <system_info.h>
 */
 
-/* Tick Timer */
-Ecore_Timer* ecore_metronome;
+
 
 /* UDP */
 int udp_sockfd;
@@ -258,9 +257,10 @@ void mouse_down_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
 
 
 	print_debug((int)ev->canvas.x,(int)ev->canvas.y);
-	send_udp((int)ev->canvas.x,(int)ev->canvas.y);
+//	send_udp((int)ev->canvas.x,(int)ev->canvas.y);
 
-	ecore_metronome = ecore_timer_add(1.0, doTick, NULL);  // make timer
+	start_stop_timer();
+	//start_timer();
 	//doTick();
 
 
@@ -281,11 +281,11 @@ void mouse_up_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
 	s_info.cur_x = ev->canvas.x;
 	s_info.cur_y = ev->canvas.y;
 
-	send_udp((int)ev->canvas.x,(int)ev->canvas.y);
+//	send_udp((int)ev->canvas.x,(int)ev->canvas.y);
 	//print_debug((int)ev->canvas.x,(int)ev->canvas.y);
 	tone_player_stop(NULL);
 
-	ecore_timer_del(ecore_metronome);
+	//stop_timer();
 
 }
 
@@ -304,7 +304,7 @@ void mouse_move_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
 	s_info.prev_y = ev->prev.canvas.y;
 
 	//print_debug((int)s_info.cur_x, (int)s_info.cur_y);
-	send_udp((int)s_info.cur_x, (int)s_info.cur_y);
+//	send_udp((int)s_info.cur_x, (int)s_info.cur_y);
 }
 
 void print_debug(int x, int y)
