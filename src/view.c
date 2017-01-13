@@ -39,6 +39,8 @@
 #include <system_info.h>
 */
 
+/* Tick Timer */
+Ecore_Timer* ecore_metronome;
 
 /* UDP */
 int udp_sockfd;
@@ -233,7 +235,6 @@ void start_cairo_drawing(void)
 	evas_object_image_data_update_add(s_info.img, 0, 0, s_info.width, s_info.height);
 }
 
-
 /* When user touch down on screen, EVAS_CALLBACK_MOUSE_DOWN event occurred
 	At that time this mouse_down_cb function callback called
 	In this function, can get and set the touched position and
@@ -255,15 +256,8 @@ void mouse_down_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
 	print_debug((int)ev->canvas.x,(int)ev->canvas.y);
 	send_udp((int)ev->canvas.x,(int)ev->canvas.y);
 
-	//tone_player_start(TONE_TYPE_PROP_BEEP, SOUND_TYPE_SYSTEM, 100,  NULL);
-	tone_player_start(TONE_TYPE_PROP_BEEP2, SOUND_TYPE_SYSTEM, 100,  NULL);
-	haptic_device_h hapt_dev;
-	int hapt_num;
-	device_haptic_get_count( &hapt_num );  // gets haptic count
-	device_haptic_open(hapt_num-1, &hapt_dev);  // Opens haptic device
-	haptic_effect_h hapt_eff;
-	device_haptic_vibrate(hapt_dev, 100, 100, &hapt_eff); // vibrates at 100ms at 100%
-	//device_haptic_close(hapt_dev);  // closes device
+	ecore_metronome = ecore_timer_add(1.0, doTick, NULL);  // make timer
+	//doTick();
 
 
 
@@ -286,6 +280,8 @@ void mouse_up_cb(void *data, Evas *e, Evas_Object *obj, void *event_info)
 	send_udp((int)ev->canvas.x,(int)ev->canvas.y);
 	//print_debug((int)ev->canvas.x,(int)ev->canvas.y);
 	tone_player_stop(NULL);
+
+	ecore_timer_del(ecore_metronome);
 
 }
 
