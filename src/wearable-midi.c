@@ -1,5 +1,6 @@
 #include "wearable-midi.h"
-
+#include "view.h"
+double bpm = 100.0;
 
 Eina_Bool doTick(void *data)
 {
@@ -13,5 +14,21 @@ Eina_Bool doTick(void *data)
 	device_haptic_vibrate(hapt_dev, 100, 100, &hapt_eff); // vibrates at 100ms at 100%
 	//device_haptic_close(hapt_dev);  // closes device
 	return ECORE_CALLBACK_RENEW;
+}
+
+Eina_Bool _rotary_handler_cb(void *data, Eext_Rotary_Event_Info *ev)
+{
+	doTick(NULL);
+	if (ev->direction == EEXT_ROTARY_DIRECTION_CLOCKWISE)
+   {
+	  bpm = bpm + 1.0;
+   }
+   else
+   {
+	  bpm = bpm - 1.0;
+   }
+
+	print_debug((int)bpm, (int)bpm);
+	return EINA_FALSE;
 }
 

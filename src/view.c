@@ -136,6 +136,10 @@ Evas_Object *view_create_win(const char *pkg_name)
 	evas_object_event_callback_add(s_info.img, EVAS_CALLBACK_MOUSE_UP, mouse_up_cb, NULL);
 	evas_object_event_callback_add(s_info.img, EVAS_CALLBACK_MOUSE_MOVE, mouse_move_cb, NULL);
 
+	/* Add turn feedback */
+	eext_rotary_event_handler_add(_rotary_handler_cb,NULL);
+
+
 
 	return win;
 }
