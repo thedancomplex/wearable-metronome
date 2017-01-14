@@ -7,6 +7,15 @@ int cur_x = 0;
 int cur_y = 0;
 int touch_drawing_start = 0;
 
+Eina_Bool _exit_down_cb(void *data, int type, void *ev)
+{
+	exit(0);
+	return ECORE_CALLBACK_PASS_ON;
+}
+
+
+
+
 Eina_Bool _key_down_cb(void *data, int type, void *ev)
 {
 	//Evas_Event_Mouse_Down *ev = (Evas_Event_Mouse_Down *) event_info;

@@ -33,3 +33,4 @@ void mouse_move_cb(void *data, Evas *e, Evas_Object *obj, void *event_info);
 void mouse_up_cb(void *data, Evas *e, Evas_Object *obj, void *event_info);
 //static Eina_Bool _key_down_cb(void *data __UNUSED__, int type __UNUSED__, void *ev);
 Eina_Bool _key_down_cb(void *data , int type , void *ev);
+Eina_Bool _exit_down_cb(void *data, int type, void *ev);

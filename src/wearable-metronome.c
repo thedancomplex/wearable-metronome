@@ -61,6 +61,15 @@ Eina_Bool doTick(void *data)
     int final_wait = (int)t_wait_us;
     if(final_wait < 0) final_wait = 0;
     //print_debug(1234, final_wait);
+
+    /*
+    int wait_break = 100;
+    int final_wait2 = final_wait/wait_break;
+    for(int i = 0; i < wait_break; i++)
+    {
+    	usleep(final_wait2);
+    }
+    */
     usleep(final_wait);
 
     clock_gettime(CLOCK_MONOTONIC_RAW, &tick);

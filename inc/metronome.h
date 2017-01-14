@@ -18,6 +18,8 @@
 
 #endif /* __metronome_H__ */
 
+#include <Elementary.h>
+
 void changeText(double bpm);
 
 

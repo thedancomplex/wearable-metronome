@@ -2,7 +2,7 @@
 <manifest xmlns="http://tizen.org/ns/packages" api-version="2.3.2" package="com.lofarolabs.metronome" version="1.0.0">
     <profile name="wearable"/>
     <ui-application appid="com.lofarolabs.metronome" exec="metronome" multiple="false" nodisplay="false" taskmanage="true" type="capp">
-        <label>metronome</label>
+        <label>WRC Metronome</label>
         <icon>metronome.png</icon>
     </ui-application>
     <privileges>
