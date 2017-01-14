@@ -1,16 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<manifest xmlns="http://tizen.org/ns/packages" api-version="2.3.2" package="com.lofarolabs.wearable-metronome" version="1.0.0">
+<manifest xmlns="http://tizen.org/ns/packages" api-version="2.3.2" package="com.lofarolabs.metronome" version="1.0.0">
     <profile name="wearable"/>
-    <ui-application appid="com.lofarolabs.wearable-metronome" exec="wearable-metronome" multiple="false" nodisplay="false" taskmanage="true" type="capp">
-        <label>wearable-metronome</label>
-        <icon>wearable-robot-controller.png</icon>
+    <ui-application appid="com.lofarolabs.metronome" exec="metronome" multiple="false" nodisplay="false" taskmanage="true" type="capp">
+        <label>metronome</label>
+        <icon>metronome.png</icon>
     </ui-application>
     <privileges>
-        <privilege>http://tizen.org/privilege/network.get</privilege>
-        <privilege>http://tizen.org/privilege/network.set</privilege>
         <privilege>http://tizen.org/privilege/haptic</privilege>
-        <privilege>http://tizen.org/privilege/internet</privilege>
-        <privilege>http://tizen.org/privilege/network.profile</privilege>
     </privileges>
     <feature name="http://tizen.org/feature/screen.size.normal.360.360">true</feature>
 </manifest>

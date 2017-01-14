@@ -1,186 +1,228 @@
-#include <app.h>
-#include "wearable-robot-controller.h"
-#include "view.h"
+#include "metronome.h"
+#include "metronome-all.h"
 
-typedef struct appdata {
-	Evas_Object *win;
-	Evas_Object *conform;
-	Evas_Object *label;
-} appdata_s;
+double bpm   = 100.0;
+double bpm_T =  0.6;
+int flag_timer_running = 0;
+int flag_thread_priority = 0;
+int i_test = 0;
+/* Tick Timer */
+Ecore_Timer* ecore_metronome;
 
-/* dan
-static void
-win_delete_request_cb(void *data, Evas_Object *obj, void *event_info)
+struct timespec tick;
+struct timespec tick2;
+struct timespec tock;
+
+struct timespec start, end;
+
+Eina_Bool doTick(void *data)
 {
-	ui_app_exit();
+	clock_gettime(CLOCK_MONOTONIC_RAW, &end);
+	uint64_t delta_us = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_nsec - start.tv_nsec) / 1000;
+	int delta_ms = (int)(delta_us / 1000);
+	start = end;
+	print_debug(delta_ms, delta_ms);
+
+	// start event
+	tick2 = tick;
+
+    //usleep(1000000);
+    //usleep((useconds_t)(T * 1000));
+    //usleep(1000000);
+	if(flag_thread_priority == 0)
+	{
+		int which = PRIO_PROCESS;
+		int priority = -20;
+		id_t pid;
+		int ret;
+		pid = getpid();
+		ret = setpriority(which, pid, priority);
+        flag_thread_priority = 1;
+	}
+	//tone_player_start(TONE_TYPE_PROP_BEEP, SOUND_TYPE_SYSTEM, 100,  NULL);
+	//tone_player_start(TONE_TYPE_PROP_BEEP2, SOUND_TYPE_SYSTEM, 40,  NULL);
+	tone_player_start(TONE_TYPE_PROP_BEEP2, SOUND_TYPE_NOTIFICATION, 40,  NULL);
+	haptic_device_h hapt_dev;
+	int hapt_num;
+	device_haptic_get_count( &hapt_num );  // gets haptic count
+	device_haptic_open(hapt_num-1, &hapt_dev);  // Opens haptic device
+	haptic_effect_h hapt_eff;
+	device_haptic_vibrate(hapt_dev, 100, 100, &hapt_eff); // vibrates at 100ms at 100%
+	//device_haptic_close(hapt_dev);  // closes device
+
+	//get end of the event
+	clock_gettime(CLOCK_MONOTONIC_RAW, &tock);
+
+	//get elapsed time
+	uint64_t elapssed_us = (tock.tv_sec - tick2.tv_sec) * 1000000 + (tock.tv_nsec - tick2.tv_nsec) / 1000;
+
+    uint64_t t_wait_us = (uint64_t)(bpm_T * 1000000) - elapssed_us;
+
+    int final_wait = (int)t_wait_us;
+    if(final_wait < 0) final_wait = 0;
+    //print_debug(1234, final_wait);
+    usleep(final_wait);
+
+    clock_gettime(CLOCK_MONOTONIC_RAW, &tick);
+
+	return ECORE_CALLBACK_RENEW;
 }
 
 
-static void
-win_back_cb(void *data, Evas_Object *obj, void *event_info)
+
+
+int doTick2(void)
 {
-	appdata_s *ad = data;
-	// Let window go to hide state.
-	elm_win_lower(ad->win);
+	tone_player_start(TONE_TYPE_PROP_BEEP2, SOUND_TYPE_NOTIFICATION, 40,  NULL);
+	haptic_device_h hapt_dev;
+	int hapt_num;
+	device_haptic_get_count( &hapt_num );  // gets haptic count
+	device_haptic_open(hapt_num-1, &hapt_dev);  // Opens haptic device
+	haptic_effect_h hapt_eff;
+	device_haptic_vibrate(hapt_dev, 100, 100, &hapt_eff); // vibrates at 100ms at 100%
+	//device_haptic_close(hapt_dev);  // closes device
+	return 0;
 }
+
+
+
+
+
+Eina_Bool _rotary_handler_cb(void *data, Eext_Rotary_Event_Info *ev)
+{
+	//doTick(NULL);
+	if (ev->direction == EEXT_ROTARY_DIRECTION_CLOCKWISE)
+   {
+	  bpm = bpm + 1.0;
+   }
+   else
+   {
+	  bpm = bpm - 1.0;
+   }
+   if(bpm < 1.0) bpm = 1.0;
+   bpm_T = 60.0 / bpm;
+   //ecore_timer_interval_set(ecore_metronome, bpm_T);
+   changeText(bpm);
+   print_debug((int)bpm, (int)bpm);
+
+   return EINA_FALSE;
+}
+
+
+int stop_timer(void)
+{	int which = PRIO_PROCESS;
+	int priority = 20;
+	id_t pid;
+	int ret;
+	pid = getpid();
+	ret = setpriority(which, pid, priority);
+
+	ecore_timer_del(ecore_metronome);
+	flag_timer_running = 0;
+	flag_thread_priority = 0;
+	return 0;
+}
+
+int start_timer(void)
+{
+	int which = PRIO_PROCESS;
+	int priority = -20;
+	id_t pid;
+	int ret;
+	pid = getpid();
+	ret = setpriority(which, pid, priority);
+
+	flag_thread_priority = 0;
+
+	/* initilize timers */
+	clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &end);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &tick);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &tick2);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &tock);
+
+	ecore_metronome = ecore_timer_add(bpm_T, doTick, NULL);  // make timer
+	//ecore_metronome = ecore_timer_loop_add(bpm_T, doTick, NULL);  // make timer
+	ecore_timer_precision_set(0.0);
+	ecore_timer_interval_set(ecore_metronome, 0.001);
+/*
+	double dt = ecore_timer_precision_get();
+	print_debug(2222222, (int)(dt*1000));
+	ecore_timer_precision_set(0.001);
+	dt = ecore_timer_precision_get();
+	print_debug(2222222, (int)(dt*1000));
 */
+	flag_timer_running = 1;
+	return 0;
+}
 
-static void
-create_base_gui(appdata_s *ad)
+int start_stop_timer(void)
 {
-	/* Window */
-	ad->win = elm_win_util_standard_add(PACKAGE, PACKAGE);
-	elm_win_autodel_set(ad->win, EINA_TRUE);
+	if(flag_timer_running == 1) stop_timer();
+	else                        start_timer(); //start_timer_thread(); //realTimeThread(); // start_timer();
+	return 0;
+}
 
-	if (elm_win_wm_rotation_supported_get(ad->win)) {
-		int rots[4] = { 0, 90, 180, 270 };
-		elm_win_wm_rotation_available_rotations_set(ad->win, (const int *)(&rots), 4);
+void start_timer_thread(void)
+{
+	pthread_t pth;  // thread identifier
+	pthread_create(&pth, NULL, threadFunc, &bpm_T);  // create thread and send bpm_T
+	eprint("started Timer Thread");
+
+    int i = 0;
+	while(1)
+	{
+		print_debug(i,i);
+		usleep(1000000);
+		i++;
+	}
+    eprint("exiting Timer thread");
+	pthread_join(pth,NULL); // wait for thread to terminate
+}
+
+void realTimeThread(void)
+{
+	struct timespec tv;
+	struct timespec t_sleep;
+	t_sleep.tv_nsec = 1;
+	t_sleep.tv_sec = 1;
+
+	//t_sleep.tv_sec = 0;
+	//t_sleep.tv_
+	gettimeofday(&tv,NULL);
+
+	unsigned long tick_in_micros = 1000000000 * tv.tv_sec + tv.tv_nsec;
+	unsigned long tock_in_micros = 1000000000 * tv.tv_sec + tv.tv_nsec;
+	double dt = (double)(tock_in_micros - tick_in_micros);
+	while(1)
+	{
+		doTick2();
+		/*
+		while(dt < bpm_T)
+		{
+			gettimeofday(&tv,NULL);
+			tock_in_micros = 1000000000 * tv.tv_sec + tv.tv_nsec;
+			dt = (double)(tock_in_micros - tick_in_micros);
+			sleep(1);
+		}
+		*/
+		//usleep(1500000);
+		nanosleep(&t_sleep,NULL);
+	//	print_debug((int)tick_in_micros, (int)(tock_in_micros));
+	//	tick_in_micros = tock_in_micros;
 	}
 
-	evas_object_smart_callback_add(ad->win, "delete,request", win_delete_request_cb, NULL);
-	eext_object_event_callback_add(ad->win, EEXT_CALLBACK_BACK, win_back_cb, ad);
-
-	/* Conformant */
-	ad->conform = elm_conformant_add(ad->win);
-	elm_win_indicator_mode_set(ad->win, ELM_WIN_INDICATOR_SHOW);
-	elm_win_indicator_opacity_set(ad->win, ELM_WIN_INDICATOR_OPAQUE);
-	evas_object_size_hint_weight_set(ad->conform, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	elm_win_resize_object_add(ad->win, ad->conform);
-	evas_object_show(ad->conform);
-
-	/* Label */
-	ad->label = elm_label_add(ad->conform);
-	elm_object_text_set(ad->label, "<align=center>Hello Tizen</align>");
-	evas_object_size_hint_weight_set(ad->label, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-	elm_object_content_set(ad->conform, ad->label);
-
-
-	/* Add background */
-	/* Get background image locaiton */
-	char sample_filepath[256];
-	char *source_filename = "wrc-back-r1.png";
-	char *resource_path = app_get_resource_path();
-	snprintf(sample_filepath, 256, "%s%s", resource_path, source_filename);
-	free(resource_path);
-
-
-	dlog_print(DLOG_ERROR, LOG_TAG, "*******dan test %d", 42);
-	dlog_print(DLOG_ERROR, LOG_TAG, "************************************************");
-	dlog_print(DLOG_ERROR, LOG_TAG, "************************************************");
-	dlog_print(DLOG_ERROR, LOG_TAG, "************************************************");
-	dlog_print(DLOG_ERROR, LOG_TAG, sample_filepath);
-	dlog_print(DLOG_ERROR, LOG_TAG, "************************************************");
-	dlog_print(DLOG_ERROR, LOG_TAG, "************************************************");
-	dlog_print(DLOG_ERROR, LOG_TAG, "************************************************");
-
-	char *buff = "<align=center>dan</align>";
-	elm_object_text_set(ad->label, buff);
-
-	/* Show window after base gui is set up */
-	evas_object_show(ad->win);
 }
 
-static bool
-app_create(void *data)
+
+void *threadFunc(double *arg)
 {
-	/* Hook to take necessary actions before main event loop starts
-		Initialize UI resources and application's data
-		If this function returns true, the main loop of application starts
-		If this function returns false, the application is terminated */
-	appdata_s *ad = data;
+	eprint("1 in Timer Thread");
+	double T = (double)*arg;
+	bpm_T = T;
+	eprint("2 in Timer Thread");
+	realTimeThread();
 
-	//create_base_gui(ad);
-	view_create();
-
-	return true;
-}
-
-static void
-app_control(app_control_h app_control, void *data)
-{
-	/* Handle the launch request. */
-}
-
-static void
-app_pause(void *data)
-{
-	/* Take necessary actions when application becomes invisible. */
-}
-
-static void
-app_resume(void *data)
-{
-	/* Take necessary actions when application becomes visible. */
-}
-
-static void
-app_terminate(void *data)
-{
-	/* Release all resources. */
-}
-
-static void
-ui_app_lang_changed(app_event_info_h event_info, void *user_data)
-{
-	/*APP_EVENT_LANGUAGE_CHANGED*/
-	char *locale = NULL;
-	system_settings_get_value_string(SYSTEM_SETTINGS_KEY_LOCALE_LANGUAGE, &locale);
-	elm_language_set(locale);
-	free(locale);
-	return;
-}
-
-static void
-ui_app_orient_changed(app_event_info_h event_info, void *user_data)
-{
-	/*APP_EVENT_DEVICE_ORIENTATION_CHANGED*/
-	return;
-}
-
-static void
-ui_app_region_changed(app_event_info_h event_info, void *user_data)
-{
-	/*APP_EVENT_REGION_FORMAT_CHANGED*/
-}
-
-static void
-ui_app_low_battery(app_event_info_h event_info, void *user_data)
-{
-	/*APP_EVENT_LOW_BATTERY*/
-}
-
-static void
-ui_app_low_memory(app_event_info_h event_info, void *user_data)
-{
-	/*APP_EVENT_LOW_MEMORY*/
-}
-
-int
-main(int argc, char *argv[])
-{
-	appdata_s ad = {0,};
-	int ret = 0;
-
-	ui_app_lifecycle_callback_s event_callback = {0,};
-	app_event_handler_h handlers[5] = {NULL, };
-
-	event_callback.create = app_create;
-	event_callback.terminate = app_terminate;
-	event_callback.pause = app_pause;
-	event_callback.resume = app_resume;
-	event_callback.app_control = app_control;
-
-	ui_app_add_event_handler(&handlers[APP_EVENT_LOW_BATTERY], APP_EVENT_LOW_BATTERY, ui_app_low_battery, &ad);
-	ui_app_add_event_handler(&handlers[APP_EVENT_LOW_MEMORY], APP_EVENT_LOW_MEMORY, ui_app_low_memory, &ad);
-	ui_app_add_event_handler(&handlers[APP_EVENT_DEVICE_ORIENTATION_CHANGED], APP_EVENT_DEVICE_ORIENTATION_CHANGED, ui_app_orient_changed, &ad);
-	ui_app_add_event_handler(&handlers[APP_EVENT_LANGUAGE_CHANGED], APP_EVENT_LANGUAGE_CHANGED, ui_app_lang_changed, &ad);
-	ui_app_add_event_handler(&handlers[APP_EVENT_REGION_FORMAT_CHANGED], APP_EVENT_REGION_FORMAT_CHANGED, ui_app_region_changed, &ad);
-	ui_app_remove_event_handler(handlers[APP_EVENT_LOW_MEMORY]);
-
-	ret = ui_app_main(argc, argv, &event_callback, &ad);
-	if (ret != APP_ERROR_NONE) {
-		dlog_print(DLOG_ERROR, LOG_TAG, "app_main() is failed. err = %d", ret);
-	}
-
-	return ret;
+	while(1) usleep(1000);
+	return NULL;
 }
