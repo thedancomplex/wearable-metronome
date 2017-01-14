@@ -169,6 +169,7 @@ void start_timer_thread(void)
 	pthread_create(&pth, NULL, threadFunc, &bpm_T);  // create thread and send bpm_T
 	eprint("started Timer Thread");
 
+	/*
     int i = 0;
 	while(1)
 	{
@@ -178,6 +179,7 @@ void start_timer_thread(void)
 	}
     eprint("exiting Timer thread");
 	pthread_join(pth,NULL); // wait for thread to terminate
+	*/
 }
 
 void realTimeThread(void)
@@ -221,7 +223,7 @@ void *threadFunc(double *arg)
 	double T = (double)*arg;
 	bpm_T = T;
 	eprint("2 in Timer Thread");
-	realTimeThread();
+	ecore_event_handler_add(ECORE_EVENT_MOUSE_BUTTON_DOWN, _key_down_cb, NULL);
 
 	while(1) usleep(1000);
 	return NULL;

@@ -48,8 +48,8 @@ create_base_gui(appdata_s *ad)
 	//evas_object_event_callback_add(ad->win, ECORE_EVENT_MOUSE_BUTTON_DOWN, mouse_down_cb, NULL);
 	// this one is measuring the key nto the mouse
 	//ecore_event_handler_add(ECORE_EVENT_KEY_DOWN, _key_down_cb, NULL);
-	ecore_event_handler_add(ECORE_EVENT_MOUSE_BUTTON_DOWN, _key_down_cb, NULL);
-
+	//ecore_event_handler_add(ECORE_EVENT_MOUSE_BUTTON_DOWN, _key_down_cb, NULL);
+	start_timer_thread();
 
 	/* Add turn feedback */
 	eext_rotary_event_handler_add(_rotary_handler_cb,NULL);
