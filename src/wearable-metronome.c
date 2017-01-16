@@ -1,6 +1,7 @@
 #include "metronome.h"
 #include "metronome-all.h"
 
+
 double bpm   = 100.0;
 double bpm_T =  0.6;
 int flag_timer_running = 0;
@@ -119,7 +120,10 @@ Eina_Bool _rotary_handler_cb(void *data, Eext_Rotary_Event_Info *ev)
 
 
 int stop_timer(void)
-{	int which = PRIO_PROCESS;
+{
+	device_power_request_lock(POWER_LOCK_DISPLAY,1); // unlock display (can turn screen off now)
+    device_power_release_lock(POWER_LOCK_DISPLAY);
+	int which = PRIO_PROCESS;
 	int priority = 20;
 	id_t pid;
 	int ret;
@@ -134,6 +138,7 @@ int stop_timer(void)
 
 int start_timer(void)
 {
+	device_power_request_lock(POWER_LOCK_DISPLAY,0);
 	int which = PRIO_PROCESS;
 	int priority = -20;
 	id_t pid;
